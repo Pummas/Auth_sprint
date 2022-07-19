@@ -1,21 +1,29 @@
-from flask import request, make_response, jsonify
-from redis import Redis
-
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_migrate import Migrate
-from flask_jwt_extended import create_refresh_token, JWTManager
-from core.config import db, app, Config
-from api.models.utils import token_required, refresh_token_required
-from api.models.users import User
-from api.models.session import Session
-import jwt
 from datetime import datetime, timedelta, timezone
+
+import jwt
+from flask import request, make_response, jsonify
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask_jwt_extended import create_refresh_token, JWTManager
+from flask_migrate import Migrate
+from redis import Redis
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from models.session import Session
+from models.utils import token_required, refresh_token_required
+from core.config import db, app, Config
 from core.redis import RedisStorage
+from models.roles import Role
+from models.users import User
 
 app = app
 migrate = Migrate(app, db)
+admin = Admin(app)
+admin.add_view(ModelView(User, db.session))
+admin.add_view(ModelView(Role, db.session))
 db = db
 db.create_all()
+
 app.config['JWT_SECRET_KEY'] = 'secret_jwt_key'
 ref = JWTManager(app)
 config = Config()

@@ -1,8 +1,10 @@
-import jwt
 from functools import wraps
+
+import jwt
+from core.config import app
 from flask import request, jsonify
-from api.core.config import app
-from api.models.users import User
+
+from .users import User
 
 
 def token_required(f):
@@ -18,7 +20,11 @@ def token_required(f):
 
         try:
             # decoding the payload to fetch the stored details
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"], verify_exp=True)
+            data = jwt.decode(
+                token, app.config['SECRET_KEY'],
+                algorithms=["HS256"],
+                verify_exp=True
+            )
             current_user = User.query \
                 .filter_by(id=data['id']) \
                 .first()

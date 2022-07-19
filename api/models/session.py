@@ -1,6 +1,6 @@
 from sqlalchemy import ForeignKey
 
-from api.core.config import db
+from core.config import db
 
 
 class Session(db.Model):
