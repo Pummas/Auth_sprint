@@ -1,27 +1,27 @@
-import os
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from pydantic import BaseSettings, Field
 
 
-class Config:
-    DB: str = os.getenv('DB', 'postgresql')
-    DB_USER: str = os.getenv('DB_USER', 'user')
-    DB_PASSWORD: str = os.getenv('DB_PASSWORD', '123qwe')
-    DB_HOST: str = os.getenv('DB_HOST', 'localhost')
-    DB_PORT: int = int(os.getenv('DB_PORT', 5432))
-    DB_NAME: str = os.getenv('DB_NAME', 'users_jwt_base')
-    DB_URL: str = f'{DB}+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'  # noqa:E501
+class Config(BaseSettings):
+    DB: str = Field('postgresql', env='DB')
+    DB_USER: str = Field('user', env='DB_USER')
+    DB_PASSWORD: str = Field('123qwe', env='DB_PASSWORD')
+    DB_HOST: str = Field('localhost', env='DB_HOST')
+    DB_PORT: int = Field(5432, env='DB_PORT')
+    DB_NAME: str = Field('users_jwt_base', env='DB_NAME')
 
-    FLASK_HOST: str = os.getenv('FLASK_HOST', '0.0.0.0')
-    FLASK_PORT: int = int(os.getenv('FLASK_PORT', 5001))
+    FLASK_HOST: str = Field('0.0.0.0', env='FLASK_HOST')
+    FLASK_PORT: int = Field(5001, env='FLASK_PORT')
 
-    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-    REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+    REDIS_HOST = Field('localhost', env='REDIS_HOST')
+    REDIS_PORT = Field(6379, env='REDIS_PORT')
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = Config.DB_URL
+config = Config()
+DB_URL = f'{config.DB}+psycopg2://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}/{config.DB_NAME}'  # noqa:E501
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)

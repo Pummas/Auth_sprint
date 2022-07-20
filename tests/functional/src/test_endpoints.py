@@ -1,3 +1,5 @@
+import pytest
+
 from tests.settings import TestSettings
 
 settings = TestSettings()
@@ -14,6 +16,19 @@ class BaseData:
     }
     login_data = {'email': email, 'password': password}
     invalid_login_data = {'email': email, 'password': 'invalid'}
+
+
+@pytest.fixture(scope="session")
+async def setup_function(user):
+    user = es_indexes.MovieIndex(settings.es_url, settings.es_port)
+    await es_index.create_index('movies')
+    data = ''
+    for genre_index in films_bulk.data:
+        for row in genre_index:
+            data += f"{json.dumps(row)}\n"
+    await es_client.bulk(data, 'movies', refresh=True)
+    yield None
+    await es_index.delete_index('movies')
 
 
 class TestEndpoints:
@@ -103,41 +118,37 @@ class TestEndpoints:
         )
         assert change.status_code == 200
 
-    # def change_personal_data(self, make_post_request):
-    #     """Тест на изменение username и email:
-    #     Залогиниться -> получить токен -> поменять данные ->
-    #     залогиниться еще раз -> вернуть все обратно"""
-    #     response = make_post_request("/login", BaseData.login_data)
-    #     assert response.status_code == 201
-    #
-    #     data = response.json()
-    #     access_token = data[0]
-    #     assert access_token is not None
-    #     old_email = BaseData.email
-    #     old_username = BaseData.username
-    #
-    #     new_email = 'change@mail.ru'
-    #     new_username = 'change'
-    #     change_data = {
-    #         'email': old_email,
-    #         'new_email': new_email,
-    #         'new_username': new_username}
-    #     change = make_post_request(
-    #         "/change_data", data=change_data, headers=access_token
-    #     )
-    #     assert change.status_code == 200
-    #
-    #     response = make_post_request(
-    #         "/login", {'email': new_email, 'password': BaseData.password}
-    #     )
-    #     assert response.status_code == 201
-    #
-    # change_data = {
-    #     'email': old_email,
-    #     'new_email': new_email,
-    #     'new_username': new_username
-    # }
-    # change = make_post_request(
-    #     "/change_data", data=change_data, headers=access_token
-    # )
-    #     assert change.status_code == 200
+    def test_change_personal_data(self, make_post_request):
+        """Тест на изменение username и email:
+        Залогиниться -> получить токен -> поменять данные ->
+        залогиниться еще раз -> вернуть все обратно"""
+        response = make_post_request("/login", BaseData.login_data)
+        assert response.status_code == 201
+
+        data = response.json()
+        access_token = data[0]
+        assert access_token is not None
+
+        new_email = 'change@mail.ru'
+        new_username = 'change'
+        change_data = {
+            'new_email': new_email,
+            'new_username': new_username}
+        change = make_post_request(
+            "/change_data", data=change_data, headers=access_token
+        )
+        assert change.status_code == 200
+
+        response = make_post_request(
+            "/login", {'email': new_email, 'password': BaseData.password}
+        )
+        assert response.status_code == 201
+
+        change_data = {
+            'new_email': BaseData.email,
+            'new_username': BaseData.username
+        }
+        change = make_post_request(
+            "/change_data", data=change_data, headers=access_token
+        )
+        assert change.status_code == 200

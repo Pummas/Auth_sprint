@@ -19,3 +19,5 @@ flake8==4.0
 redis==4.3.4
 Flask-JWT-Extended==4.4.2
 SQLAlchemy==1.4.39
+pydantic==1.9.1
+alembic==1.8.0
