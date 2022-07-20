@@ -16,13 +16,10 @@ from core.redis import RedisStorage
 from models.roles import Role
 from models.users import User
 
-app = app
 migrate = Migrate(app, db)
 admin = Admin(app)
 admin.add_view(ModelView(User, db.session))
 admin.add_view(ModelView(Role, db.session))
-db = db
-db.create_all()
 
 app.config['JWT_SECRET_KEY'] = 'secret_jwt_key'
 ref = JWTManager(app)
@@ -185,16 +182,12 @@ def get_all_users(current_user):
 @app.route('/history', methods=['GET'])
 @token_required
 def get_history(current_user):
-    history = request.form
-    user = User.query \
-        .filter_by(email=history.get('email')) \
-        .first()
-    history = db.session.query(Session).filter(Session.user_id == user.id)
+    history = db.session.query(Session).filter(Session.user_id == current_user.id)
     output = []
     for i in history:
         output.append({
             'id': i.id,
-            'user_id': user.id,
+            'user_id': current_user.id,
             'login_time': i.login_time
         })
     return jsonify({'history': output})

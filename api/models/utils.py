@@ -12,8 +12,8 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
         # jwt is passed in the request header
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
+        if 'access_token' in request.headers:
+            token = request.headers['access_token']
         # return 401 if token is not passed
         if not token:
             return jsonify({'message': 'Token is missing !!'}), 401
@@ -41,7 +41,7 @@ def token_required(f):
 def refresh_token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if 'refresh-token' in request.headers:
+        if 'refresh_token' in request.headers:
             token = request.headers['refresh_token']
             return f(token, *args, **kwargs)
         return jsonify({
